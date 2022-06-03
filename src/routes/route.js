@@ -1,41 +1,53 @@
 const express = require('express');
-const myHelper = require('../util/helper')
-const underscore = require('underscore')
+const res = require('express/lib/response');
+//const myHelper = require('../util/helper')
+//const underscore = require('underscore')
 
 const router = express.Router();
 
-router.get('/test-me', function (req, res) {
-    myHelper.printDate()
-    myHelper.getCurrentMonth()
-    myHelper.getCohortData()
-    let firstElement = underscore.first(['Sabiha','Akash','Pritesh'])
-    console.log('The first element received from underscope function is '+firstElement)
-    res.send('My first ever api!')
-});
-
 router.get('/hello', function (req, res) {
-   
-    res.send('Hello there!')
+    let _ = require("lodash");
+    let arr = ['jan', 'feb', 'march', 'april', 'may', 'june', 'july', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    console.log("Before: ", arr)
+    
+
+    // Making chunks of size 3
+    console.log("After: ", _.chunk(arr, 3))
+    
+  
+
+
+
+    const arr1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+
+
+    const odds = arr1.filter(number => {
+        return number % 2 !== 0;
+    });
+
+    console.log(_.tail(odds));
+
+
+
+
+
+
+//const _ = require("lodash");  
+
+// Use of _.union() method 
+    let gfg = _.union([20, 12, 6, 15], [8, 15, 6], [6, 8, 9], [9, 8, 5], [9, 6, 7]);
+// Printing the output  
+    console.log(gfg)
+// const _ = require('lodash');
+
+    let pairs = [['x', 1], ['y', 2], ['z', 3]]
+
+    let obj = _.fromPairs(pairs);
+
+    console.log(obj)
 });
-
-router.get('/candidates', function(req, res){
-    console.log('Query paramters for this request are '+JSON.stringify(req.query))
-    let gender = req.query.gender
-    let state = req.query.state
-    let district = req.query.district
-    console.log('State is '+state)
-    console.log('Gender is '+gender)
-    console.log('District is '+district)
-    let candidates = ['Akash','Suman']
-    res.send(candidates)
-})
-
-router.get('/candidates/:canidatesName', function(req, res){
-    console.log('The request objects is '+ JSON.stringify(req.params))
-    console.log('Candidates name is '+req.params.canidatesName)
-    res.send('Done')
-})
 
 
 module.exports = router;
 // adding this comment for no reason
+
