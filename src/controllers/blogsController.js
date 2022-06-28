@@ -1,9 +1,9 @@
+const { default: mongoose } = require("mongoose");
 const authorModel = require("../models/authorModel");
 const blogsModel = require("../models/blogsModel");
 
-/*------------------------------------------------------------------------------------------
-➡️ POST METHOD, CREATE NEW BLOG USING
------------------------------------------------------------------------------------------- */
+//➡️ POST METHOD, CREATE NEW BLOG USING
+
 const createBlogs = async function (req, res) {
   try {
     const data = req.body;
@@ -20,6 +20,13 @@ const createBlogs = async function (req, res) {
         .status(400)
         .send({ status: falase, msg: "Post Body Data Required" });
     }
+    if (Object.keys(data.authorId).length > 24) {
+      return res.status(400).send({ status: false, msg: "authorId is invelid" });
+    }
+    if (Object.keys(data.authorId).length < 24) {
+      return res.status(400).send({ status: false, msg: "authorId is invelid" });
+    }
+
     if (!data.authorId) {
       return res
         .status(400)
@@ -49,38 +56,20 @@ const createBlogs = async function (req, res) {
     const saveData = await blogsModel.create(data);
     res.status(201).send({ status: true, data: saveData });
   } catch (err) {
-    res.status(400).send({ status: falase, msg: err.message });
+    res.status(400).send({ status: false, msg: err.message });
   }
 };
 
-/*=======================================================================================================
-➡️ GET METHOD, GET ALL LIST OF BLOGS
-========================================================================================================*/
+//➡️ GET METHOD, GET ALL LIST OF BLOGS
+
 const getAllBlogs = async (req, res) => {
   try {
     let data = req.query;
-    let query = {};
 
-    if (Object.keys(data).length > 0) {
-      if (data.tags) {
-        data.tags = {
-          $in: data.tags,
-        };
-      }
+    data.isdeleted = false;
+    data.isPublished = true;
 
-      if (data.subcategory) {
-        data.subcategory = {
-          $in: data.subcategory,
-        };
-      }
-
-       query = data;
-    }
-
-    query.isDeleted = false;
-    query.isPublished = true;
-
-    const allBlogs = await blogsModel.find(query);
+    const allBlogs = await blogsModel.find(data);
 
     if (allBlogs.length == 0) {
       return res.status(404).send({
@@ -101,134 +90,145 @@ const getAllBlogs = async (req, res) => {
   }
 };
 
-/*=======================================================================================================
-➡️ PUT METHOD, UPDATE BY BLOG ID AS PARAMS
-==========================================================================================================*/
+//➡️ PUT METHOD, UPDATE BY BLOG ID AS PARAMS
 const updateBlogsById = async function (req, res) {
   try {
     let blogId = req.params.blogId;
     let data = req.body;
+
     if (Object.keys(data).length == 0)
       return res.status(400).send({
         status: false,
         msg: "Body is Required",
       });
-    let blogData = await blogsModel.findOne({ _id: blogId, isDeleted: false });
-    if (!blogData)
+    if (
+      Blog.tags &&
+      Blog.body &&
+      Blog.title &&
+      Blog.category && //and ,and
+      Blog.subcategory
+    ) {
+      (Blog.tags = updatedBlog.tags),
+        (Blog.body = updatedBlog.body),
+        (Blog.title = updatedBlog.title),
+        (Blog.category = updatedBlog.category),
+        (Blog.subcategory = updatedBlog.subcategory);
+    } else {
+      return res.status(404).send({ status: false, msg: "wrong key entered" });
+    }
+
+    let Blog = await blogsModel.findOneAndUpdate(
+      { _id: blogId, isDeleted: false },
+      {
+        $set: { body: data.body, title: data.title, category: data.category },
+        $push: { tags: data.tags, subcategory: data.subcategory },
+      },
+      { new: true }
+    );
+    if (!Blog)
       return res.status(404).send({
         status: false,
         msg: "blogsId related data unavailable",
       });
-    if (data.title) blogData.title = data.title;
-    if (data.category) blogData.category = dat.category;
-    if (data.body) blogData.body = data.body;
-    if (data.tags) {
-      if (typeof data.tags == "object") {
-        blogData.tags.push(...data.tags);
-      } else {
-        blogData.tags.push(data.tags);
-      }
-    }
-    if (data.subcategory) {
-      if (typeof data.subcategory == "object") {
-        blogData.subcategory.push(...data.subcategory);
-      } else {
-        blogData.subcategory.push(data.subcategory);
-      }
-    }
+
     blogData.publishedAt = Date();
     blogData.isPublished = true;
     blogData.save();
     res.status(200).send({
       status: true,
-      data: blogData,
+      data: Blog,
     });
+    console.log(Blog);
   } catch (err) {
     res.status(500).send({ status: false, msg: err.message });
   }
 };
 
-/*=======================================================================================================
-➡️ DELETE METHOD, DELETE BY BLOG-iD AS PARAMS
-==========================================================================================================*/
+//➡️ DELETE METHOD, DELETE BY BLOG-iD AS PARAMS
 
 const deleteBlogsById = async function (req, res) {
   try {
     let blogId = req.params.blogId;
-    let result = await blogsModel.findOne({
+    let result = await blogsModel.findByIdAndUpdate({
       _id: blogId,
       isDeleted: false,
     });
     if (!result)
-      return res.status(404).send({
-        status: false,
-        msg: "User data not found",
-      });
-    let updated = await blogsModel.findByIdAndUpdate(
-      {
-        _id: blogId,
-        isDeleted: false,
-      },
-      { isDeleted: true, deletedAt: Date() },
-      { new: true }
-    );
-    res.status(200).send({ status: true, msg: "Deletion Successfull" });
-    res.send({ status: true, data: updated });
+      return res.status(404).send(
+        {
+          status: false,
+          msg: "User data not found",
+        },
+        { isDeleted: true, deletedAt: Date() },
+        { new: true }
+      );
+
+    res.status(200).send({ status: true, msg: "Deleted Successfull" });
   } catch (err) {
     res.status(500).send({ status: false, msg: err.message });
   }
 };
 
-/*=======================================================================================================
-➡️ DELETE METHOD, DELETE BY BLOG-iD AS PARAMS
-========================================================================================================*/
-const deleteBolgsByQuery = async function (req, res) {
+//➡️ DELETE METHOD, DELETE BY QUERY
+const deleteBlogsByQuery = async function (req, res) {
   try {
     let data = req.query;
-    let query = {};
+    if (data.authorId) {
+      if (data.authorId != req.decodedToken.authorId) return res.status(401).send({
+          status: false,
+          msg: "user is not authorized "
+      });
+  }
+
     if (Object.keys(data).length == 0) {
       return res.status(400).send({
         status: false,
-        msg: "No query params available",
+        msg: "no query params available ",
       });
-    } else {
-      // ==> if tag defined
-      if (data.tag) {
-        data.tag = {
-          $in: data.tag,
-        };
-      }
-      // ==> if subcategory
-      if (data.subcategory) {
-        data.subcategory = {
-          $in: data.subcategory,
-        };
-      }
-      // ==> query structure
-      query = {};
-    }
-    // ==>default query
-    query.isDeleted = false;
-    query.authorId = req.decodedToken.authorId;
+    }   
 
-    const available = await blogsModel.find(query).count();
-    if (!available == 0) {
+    data.isDeleted = false;
+    data.authorId=req.decodedToken.authorId;
+
+    const deleteData = await blogsModel.find(data).updateMany(data, {
+      $set: {
+        isDeleted: true,
+        deletedAt: Date(),
+      },
+    });
+    if (!deleteData) {
       return res.status(404).send({
         status: false,
-        msg: "query data not found OR may be you are unauthorised to delete info",
+        msg: "query data not found ",
       });
     }
 
-    const deleteData = await blogsModel.updateMany(query, {
-      $set: { isDeleted: true, deletedAt: deleteData },
+    res.status(200).send({
+      status: true,
+      data: deleteData,
+      msg: "data deleted saccssesful",
     });
-    res.status(200).send({ status: true, data: deleteData });
-  } catch (err) {
-    res.status(500).send({ status: false, msg: err.message });
+    console.log(deleteData);
+  } catch (error) {
+    res.status(500).send({
+      status: false,
+      msg: error.message,
+    });
   }
 };
+
+   
+
+
+
+
+    
+    
+    
+
+    
 module.exports.createBlogs = createBlogs;
 module.exports.deleteBlogsById = deleteBlogsById;
 module.exports.getAllBlogs = getAllBlogs;
 module.exports.updateBlogsById = updateBlogsById;
-module.exports.deleteBolgsByQuery = deleteBolgsByQuery;
+module.exports.deleteBlogsByQuery = deleteBlogsByQuery;

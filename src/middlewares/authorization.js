@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken");
-const blogsModule = require("../models/blogsModel");
-
+const blogsModel = require("../models/blogsModel");
 const authentication =  function (req, res, next)  {
   try {
     let token = req.headers["x-api-key"];
@@ -15,7 +14,7 @@ const authentication =  function (req, res, next)  {
         status: false,
         msg: "invalid token. please enter a valid token",
       });
-    req["decodedToken"] = decodedToken;
+    req.decodedToken = decodedToken;
     next();
   } catch (error) {
     res.status(500).send({
@@ -25,28 +24,32 @@ const authentication =  function (req, res, next)  {
   }
 };
 
-const authorization = async function (req, res, next)  {
+const authorization = async function (req, res, next) {
   try {
-    let author_Id = req.decodedToken.authorId;
-     console.log(author_Id)
-    let blogId = req.params.blogId;
-    let author = await blogsModule.findOne({
-      authorId: author_Id,
-      _id: blogId,
-    });
-    if (!author)
-      return res.status(403).send({
-        status: false,
-        msg: "Unauthorized User",
-      });
-    next();
+
+
+      let author_Id = req.decodedToken.authorId
+       console.log(author_Id)
+      let blogId = req.params.blogId
+      let author = await blogsModel.findOne({
+          authorId: author_Id,
+          _id: blogId
+
+      })
+
+     
+      if (!author) return res.status(403).send({
+          status: false,
+          msg: "User not verify"
+      })
+      next()
   } catch (error) {
-    res.status(500).send({
-      status: false,
-      msg: error.message,
-    });
+      res.status(500).send({
+          status: false,
+          msg: error.message
+      })
   }
-};
+}
 
 module.exports.authentication = authentication;
 module.exports.authorization = authorization;

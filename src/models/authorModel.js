@@ -1,17 +1,15 @@
 const mongoose = require("mongoose");
-
-
 const authorSchema = new mongoose.Schema(
-  { 
+  {
     fname: {
       type: String,
       required: true,
-      trim: true, //remove space start and end point
+      trim: true
     },
     lname: {
       type: String,
       required: true,
-      trim: true, //remove space start and end point
+      trim:true
     },
     title: {
       type: String,
@@ -22,17 +20,19 @@ const authorSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      trim: true, //remove space start and end point
+      trim: true,
     },
     password: {
       type: String,
       required: true,
-      trim: true, //remove space start and end point
+      trim:true
     },
   },
   {
     timestamps: true,
   }
 );
+      
+   
 
 module.exports = mongoose.model("Author", authorSchema);
