@@ -2,6 +2,11 @@ const validUrl = require("valid-url");
 const shortid = require("shortid");
 
 const UrlModel = require("../models/urlModel");
+const isValid = function (value) {
+  if (typeof value === "undefined" || typeof value === null) return false;
+  if (typeof value === String && value.trim().length === 0) return false;
+  return true;
+};
 const createUrl = async (req, res) => {
   try {
     const { longUrl } = req.body;
@@ -12,10 +17,14 @@ const createUrl = async (req, res) => {
         status: false,
         message: "Invalid URL Please Enter valid details",
       });
-    if (!longUrl)
-      return res
-        .status(400)
-        .send({ status: false, message: "longUrl is required" });
+    // if (!longUrl)
+    //   return res
+    //     .status(400)
+    //     .send({ status: false, message: "longUrl is required" });
+
+    if (!isValid(longUrl)) {
+      return res.status(400).send({ status: false, msg: "please enter url" });
+    }
 
     // Check base url
     if (!validUrl.isUri(baseUrl)) {
@@ -37,8 +46,8 @@ const createUrl = async (req, res) => {
         .send({ status: false, msg: "This longUrl already shorting" });
     }
     const shortUrl = baseUrl + "/" + urlCode;
-    req.body.urlCode = urlCode;//req.body me urlCode aor shorturl dal rhe hai uske bad usko create kr rhe hai
-    req.body.shortUrl = shortUrl;//because hmko shorturl and Urlcode dono dalna hoda
+    req.body.urlCode = urlCode; //req.body me urlCode aor shorturl dal rhe hai uske bad usko create kr rhe hai
+    req.body.shortUrl = shortUrl; //because hmko shorturl and Urlcode dono dalna hoda
 
     url = await UrlModel.create(req.body);
 
